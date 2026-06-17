@@ -1,0 +1,149 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const registryUrl = '/plugins/index.json';
+const registry = await fetch(new URL(registryUrl, Astro.site || 'http://localhost:4321')).catch(() => null);
+
+// Load registry from local file during build
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const indexPath = path.resolve(__dirname, '../../public/plugins/index.json');
+const indexData = JSON.parse(readFileSync(indexPath, 'utf-8'));
+const plugins = indexData.plugins;
+
+// Load descriptions from individual manifests
+function getDescription(pluginId: string): string {
+  const descriptions: Record<string, string> = {
+    'dev.kuml.plugin.theme.pdv': 'Apply the official Partei der Vernunft branding to all kUML diagram outputs — colors, fonts, and styles aligned with PdV visual identity guidelines.',
+    'dev.kuml.plugin.renderer.pdf': 'Render kUML diagrams directly to PDF. Produces print-ready vector output suitable for documentation and formal reports.',
+    'dev.kuml.plugin.layout.elk': 'Use the Eclipse Layout Kernel (ELK) as the layout engine for kUML diagrams — advanced automatic graph layout algorithms.',
+    'dev.kuml.plugin.codegen.typescript': 'Generate TypeScript type definitions and interfaces from kUML class and component diagrams.',
+    'dev.kuml.plugin.reverse.typescript': 'Reverse-engineer TypeScript source files into kUML models — import existing codebases as diagrams.',
+  };
+  return descriptions[pluginId] ?? 'A kUML extension plugin.';
+}
+---
+
+<Layout
+  title="kUML Plugin Registry"
+  description="Themes, renderers, layout engines, codegen and reverse-engineering extensions for kUML."
+>
+  <section class="hero">
+    <h1 class="hero__title">kUML Plugin Registry</h1>
+    <p class="hero__subtitle">
+      Themes, renderers, layout engines, codegen and reverse-engineering extensions for kUML.
+    </p>
+  </section>
+
+  <input
+    type="search"
+    class="search-bar"
+    id="search"
+    placeholder="Search plugins..."
+    aria-label="Search plugins"
+  />
+
+  <div class="filter-chips" id="filter-chips">
+    <button class="chip active" data-category="all">All</button>
+    <button class="chip" data-category="theme">Theme</button>
+    <button class="chip" data-category="renderer">Renderer</button>
+    <button class="chip" data-category="layout">Layout</button>
+    <button class="chip" data-category="codegen">Codegen</button>
+    <button class="chip" data-category="reverse">Reverse</button>
+  </div>
+
+  <div class="plugin-grid" id="plugin-grid">
+    {plugins.map((plugin: any) => (
+      <article class="plugin-card" data-id={plugin.id} data-category={plugin.category} data-name={plugin.name}>
+        <div class="plugin-card__header">
+          <span class="plugin-card__name">{plugin.name}</span>
+          <span class={`badge badge-${plugin.category}`}>{plugin.category}</span>
+        </div>
+        <p class="plugin-card__id">{plugin.id}</p>
+        <p class="plugin-card__desc">{getDescription(plugin.id)}</p>
+        <div class="plugin-card__meta">
+          <span>v{plugin.version}</span>
+          <span>kUML {plugin.kumlVersionRange}</span>
+          <span>by {plugin.maintainer}</span>
+          <span>{plugin.licenseSpdx}</span>
+        </div>
+        <div class="plugin-card__install">
+          <span class="prompt">$</span>
+          <span>kuml plugin install {plugin.id}</span>
+        </div>
+        <div class="plugin-card__links">
+          <a href={`/${plugin.manifest}`} target="_blank" rel="noopener">View Manifest</a>
+          {plugin.homepage && (
+            <a href={plugin.homepage} target="_blank" rel="noopener">Homepage</a>
+          )}
+        </div>
+      </article>
+    ))}
+  </div>
+
+  <p class="no-results" id="no-results">No plugins match your search.</p>
+</Layout>
+
+<script>
+  import Fuse from 'fuse.js';
+
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('.plugin-card'));
+  const searchInput = document.getElementById('search') as HTMLInputElement;
+  const filterChips = document.querySelectorAll<HTMLButtonElement>('.chip');
+  const noResults = document.getElementById('no-results') as HTMLElement;
+
+  let activeCategory = 'all';
+
+  // Build Fuse index
+  const fuseData = cards.map((card) => ({
+    el: card,
+    id: card.dataset.id ?? '',
+    name: card.dataset.name ?? '',
+    category: card.dataset.category ?? '',
+  }));
+
+  const fuse = new Fuse(fuseData, {
+    keys: ['name', 'id', 'category'],
+    threshold: 0.35,
+  });
+
+  function applyFilters() {
+    const query = searchInput.value.trim();
+    let visible: Set<HTMLElement>;
+
+    if (query) {
+      const results = fuse.search(query).map((r) => r.item.el);
+      visible = new Set(results);
+    } else {
+      visible = new Set(cards);
+    }
+
+    let count = 0;
+    for (const card of cards) {
+      const matchesCategory = activeCategory === 'all' || card.dataset.category === activeCategory;
+      const matchesSearch = visible.has(card);
+      if (matchesCategory && matchesSearch) {
+        card.classList.remove('hidden');
+        count++;
+      } else {
+        card.classList.add('hidden');
+      }
+    }
+
+    noResults.style.display = count === 0 ? 'block' : 'none';
+  }
+
+  searchInput.addEventListener('input', applyFilters);
+
+  filterChips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      filterChips.forEach((c) => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeCategory = chip.dataset.category ?? 'all';
+      applyFilters();
+    });
+  });
+</script>
