@@ -1,12 +1,13 @@
-name: Check Registry
+name: Validate PR
 
 on:
   pull_request:
     paths:
       - 'public/plugins/**'
+      - 'schema/**'
 
 jobs:
-  check:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,4 +16,14 @@ jobs:
         with:
           node-version: '20'
 
-      - run: node scripts/check-uniqueness.js
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check index uniqueness & manifest paths
+        run: node scripts/check-uniqueness.js
+
+      - name: Validate all manifests against JSON Schema
+        run: npm run validate-all
+
+      - name: Scan permissions for unknown/high-risk entries
+        run: npm run scan-permissions

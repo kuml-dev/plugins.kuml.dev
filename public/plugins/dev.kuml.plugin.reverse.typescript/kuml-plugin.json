@@ -3,7 +3,7 @@
   "id": "dev.kuml.plugin.reverse.typescript",
   "name": "TypeScript Reverse Engine",
   "version": "1.0.0",
-  "kumlVersionRange": ">=0.12.0",
+  "kumlVersionRange": ">=0.13.0",
   "extensions": [
     {
       "category": "reverse",
@@ -11,6 +11,8 @@
       "id": "typescript-reverse-plugin"
     }
   ],
-  "permissions": ["fs.read"],
+  "permissions": ["READ_FS"],
+  "maintainer": "kuml-dev",
+  "homepage": "https://github.com/kuml-dev/kUML",
   "licenseSpdx": "Apache-2.0"
 }

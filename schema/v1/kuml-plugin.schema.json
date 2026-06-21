@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plugins.kuml.dev/schema/v1/kuml-plugin.schema.json",
+  "title": "kUML Plugin Manifest",
+  "description": "Schema for kuml-plugin.json manifests (kUML Plugin API v3.0.27+)",
+  "type": "object",
+  "required": ["schemaVersion", "id", "name", "version", "kumlVersionRange", "extensions", "permissions", "maintainer", "licenseSpdx"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "Manifest schema version. Always 1 for v3.0.x plugins."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$",
+      "description": "Reverse-domain plugin ID, e.g. dev.kuml.plugin.theme.pdv",
+      "examples": ["dev.kuml.plugin.theme.pdv", "com.example.plugin.my-renderer"]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "description": "Human-readable plugin name."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-(0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(\\.(0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?$",
+      "description": "Semantic version of this plugin release."
+    },
+    "kumlVersionRange": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Maven-style version range, e.g. >=0.13.0, <1.0",
+      "examples": [">=0.13.0, <1.0", ">=0.12.0"]
+    },
+    "extensions": {
+      "type": "array",
+      "description": "List of extension points this plugin contributes.",
+      "items": {
+        "type": "object",
+        "required": ["category", "implementation", "id"],
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": ["theme", "renderer", "layout", "codegen", "reverse"],
+            "description": "Extension category matching one of the five kUML plugin categories."
+          },
+          "implementation": {
+            "type": "string",
+            "description": "Fully qualified class name implementing the category SPI.",
+            "examples": ["dev.kuml.plugin.examples.pdv.PdvThemePlugin"]
+          },
+          "id": {
+            "type": "string",
+            "description": "Short identifier for this extension within the plugin.",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          }
+        }
+      }
+    },
+    "permissions": {
+      "type": "array",
+      "description": "Permissions this plugin requests from the kUML runtime sandbox.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "READ_MODEL",
+          "WRITE_MODEL",
+          "READ_FS",
+          "WRITE_FS",
+          "NETWORK",
+          "EXEC_SUBPROCESS",
+          "READ_CONFIG",
+          "WRITE_CONFIG"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "maintainer": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Name or GitHub handle of the plugin maintainer."
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "description": "Optional URL to the plugin's homepage or source repository."
+    },
+    "licenseSpdx": {
+      "type": "string",
+      "minLength": 1,
+      "description": "SPDX license identifier, e.g. Apache-2.0, MIT, GPL-3.0-only.",
+      "examples": ["Apache-2.0", "MIT", "GPL-3.0-only"]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Optional short description shown in the plugin registry."
+    }
+  }
+}

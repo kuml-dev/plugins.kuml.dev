@@ -3,7 +3,7 @@
   "id": "dev.kuml.plugin.codegen.typescript",
   "name": "TypeScript Code Generator",
   "version": "1.0.0",
-  "kumlVersionRange": ">=0.12.0",
+  "kumlVersionRange": ">=0.13.0",
   "extensions": [
     {
       "category": "codegen",
@@ -11,6 +11,8 @@
       "id": "typescript-codegen-plugin"
     }
   ],
-  "permissions": ["fs.write"],
+  "permissions": ["WRITE_FS"],
+  "maintainer": "kuml-dev",
+  "homepage": "https://github.com/kuml-dev/kUML",
   "licenseSpdx": "Apache-2.0"
 }
